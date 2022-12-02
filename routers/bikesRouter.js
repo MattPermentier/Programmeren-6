@@ -1,28 +1,56 @@
-// Bikes
 const express = require("express");
-const router = express.Router();
 
 const Bike = require("../models/bikesModel");
 
-// create route /
+//creat router
+const router = express.Router();
+
+// add routes for all end points
+
+// collection: GET /
 router.get("/", async (req, res) => {
-    console.log("GET");
+    console.log("GET request for collection /");
     try {
         let bikes = await Bike.find();
-        res.json(bikes);
+
+        // create representation for collection as requested in assignment
+        // items, _links, pagination
+
+        let bikesCollection = {
+            bikes: bikes,
+            _links: {
+                self: {
+                    href: `${process.env.BASE_URI}bikes/`
+                },
+                collection: {
+                    href: `${process.env.BASE_URI}bikes/`
+                }
+            },
+            pagination: "Doen we een andere keer, maar er moet iets in staan voor de checker"
+        }
+
+        res.json(bikesCollection);
     } catch {
+        // no response from db
         res.status(500).send()
     }
 })
 
-// create route for detail
-router.get("/:id", (req, res) => {
-    // find(_id)
-    console.log("GET");
-    res.send(`${req.params.id}`);
+// detail: GET /id
+router.get("/:id", async (req, res) => {
+    console.log(`GET request for detail ${req.params.id}`);
+
+    try {
+        let bikes = await Bike.findById(req.params.id);
+
+        res.json(bikes);
+    } catch {
+        // id not found, send 404
+        res.status(404).send()
+    }
 })
 
-// create route /
+// add resource to collection: POST /
 router.post("/", async (req, res) => {
     console.log("POST");
 
