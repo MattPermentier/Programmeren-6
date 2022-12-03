@@ -13,20 +13,14 @@ router.get("/", async (req, res) => {
     try {
         let bikes = await Bike.find();
 
-        // create representation for collection as requested in assignment
-        // items, _links, pagination
-
         let bikesCollection = {
             bikes: bikes,
             _links: {
                 self: {
                     href: `${process.env.BASE_URI}bikes/`
-                },
-                collection: {
-                    href: `${process.env.BASE_URI}bikes/`
                 }
             },
-            pagination: "Doen we een andere keer, maar er moet iets in staan voor de checker"
+            pagination: "Zet er nu iets in"
         }
 
         res.json(bikesCollection);
@@ -41,35 +35,49 @@ router.get("/:id", async (req, res) => {
     console.log(`GET request for detail ${req.params.id}`);
 
     try {
-        let bikes = await Bike.findById(req.params.id);
-
-        res.json(bikes);
+        let bike = await Bike.findById(req.params.id);
+        if (bike == null) {
+            res.status(404).send();
+        } else {
+            res.json(bike);
+        }
     } catch {
         // id not found, send 404
         res.status(404).send()
     }
 })
 
+// middleware checkt header content-type
+router.post("/", (req, res, next) => {
+    if (req.header("Content-Type") == "application/json") {
+        next();
+    } else {
+        res.status(415).send();
+    }
+});
+
 // add resource to collection: POST /
 router.post("/", async (req, res) => {
-    console.log("POST");
+    console.log("POST request for collection /");
 
-    // deze info moet uit reuest komen
-    let bike = new Bike({
-        brand: "Test",
-        model: "F650 Funduro",
-        power: "650CC"
+    let bike = Bike({
+        brand: req.body.brand,
+        model: req.body.model,
+        power: req.body.power
     })
 
     try {
         await bike.save();
-
-        res.json(bike);
+        res.status(201).send();
     } catch {
         res.status(500).send()
     }
-
 })
 
+router.options("/", (req, res) => {
+    res.setHeader("Allow", "GET, POST, OPTIONS");
+    res.send();
+})
 
+// export router
 module.exports = router;

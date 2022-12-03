@@ -23,6 +23,12 @@ db.on("error", console.error.bind(console, "MongoDB connection error:"));
 // create webserver
 const app = express();
 
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
+
 const bikesRouter = require("./routers/bikesRouter");
 
 // create route /
